@@ -1,0 +1,75 @@
+#######CloudWatch-Agent-Download-commands On Apache-Server#######
+
+
+#Install the CloudWatch Agent on the EC2 Instance
+#Connect to the EC2 Instance and run the command below to install couldwatch Agent
+
+sudo yum install amazon-cloudwatch-agent -y
+
+#Create a Configuration File  using below command 
+
+sudo vi /opt/aws/amazon-cloudwatch-agent/bin/config.json
+
+Add the following configuration to capture all logs
+
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/*",
+            "log_group_name": "ec2-all-logs",
+            "log_stream_name": "{instance_id}-all-logs"
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+#Start the agent using the configuration file:
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m 
+ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
+
+###################################################################################################################################################################################
+
+Export logs from CloudWatch Logs to an S3 bucket
+Create S3 Bucket
+Navigate to the S3 service
+Click Create bucket after entering Bucket Name and leave other defaults
+
+
+Go to the bucket's Permissions tab 
+Go to Bucket Policy. Click Edit
+Add the following policy:
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowCloudWatchLogs",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "logs.amazonaws.com"
+            },
+            "Action": [
+                "s3:PutObject",
+                "s3:GetBucketAcl",
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::my-cloudwatch-logs-bucket-pr/*",   #change bucket-name
+                "arn:aws:s3:::my-cloudwatch-logs-bucket-pr"      #change bucket-name
+            ]
+        }
+    ]
+}
+
+Click on Save Changes
+
+
+
+
+
